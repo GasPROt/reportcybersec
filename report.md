@@ -17,7 +17,7 @@ The environment has been setup this way, under Virtual Box 7.0.14 r161095:
 
 All Windows machines are Windows Server 2019 Standard Evaluation Version 10.0.17763 Build 17763 downloaded from the tutorial already setup for the lab (manual detailed configuration steps also provided in the SANS tutorial).
 
-All network interfaces are setup as "internal network" and each machine has a static IP address inside the network 10.0.0.0/24. I made the following changes to the setup:
+All network interfaces are setup as "internal network" and each machine has a static IP address inside the network 10.0.0.0/24 in the domain `nlmlab.local`. I made the following changes to the setup:
 - changed the IP address of the victim from 10.0.0.1 to 10.0.0.2 due to conflict when using natted network during my experiments;
 - changed all the lockscreen and desktop background images for ease of presentation and screenshots;
 - configured a time synchronization method between VMs;
