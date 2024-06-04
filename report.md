@@ -168,7 +168,7 @@ Once poison is complete, when a victim user attempts to browse an internal resou
 
 This is what happens on the victim machine:
 - on the left the result of a `ipconfig /all` to show that there is a new DNS server with the IPv6 address of attacker, and the `ping zabbix.ntlmlab.local` command that goes to the attacker’s IP address 10.0.0.7;
-- on the right, the http request towards zabbix.ntlmlab.local that fires up the prompt asking for credentials.
+- on the right, the http request towards `zabbix.ntlmlab.local` that fires up the prompt asking for credentials.
 
 ![iexplore](images/iexplore.png)
 
