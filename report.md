@@ -8,12 +8,12 @@ This report is about the NTLM relay attack. My work is based on the online tutor
 
 The environment has been setup this way, under Virtual Box 7.0.14 r161095:
 
-| Role | OS | IP |
-|:------| :-----| :----|
-| Domain controller   | Windows | 10.0.0.100 |
-| File server SV01 | Windows | 10.0.0.10 |
-| Victim client    | Windows | 10.0.0.2 |
-| Attacker    | Ubuntu 22.04.01 LTS | 10.0.0.7 |
+| Name | Role | OS | IP |
+|:-------|:------| :-----| :----|
+| NTLM-DC | Domain controller   | Windows | 10.0.0.100 |
+| SRV01 | File server SV01 | Windows | 10.0.0.10 |
+| VICTIM | Victim client    | Windows | 10.0.0.2 |
+| - | Attacker    | Ubuntu 22.04.01 LTS | 10.0.0.7 |
 
 All Windows machines are Windows Server 2019 Standard Evaluation Version 10.0.17763 Build 17763 downloaded from the tutorial already setup for the lab (manual detailed configuration steps also provided in the SANS tutorial).
 
@@ -27,7 +27,7 @@ All network interfaces are setup as "internal network" and each machine has a st
 ### NTLM Relay
 NTLM relay attacks are a powerful way to move around and escalate privileges in a domain network.
 The attacker relays an incoming authentication request from a victim to a target service. 
-When a server asks the client (attacker) to prove his identity by encrypting a challenge, the attacker passes that challenge on and asks a victim to encrypt that same challenge for himself in order to impersonate victim’s identity against the server.
+When a server asks the client (attacker) to prove his identity by encrypting a challenge, the attacker passes that challenge on and asks the victim to encrypt that same challenge for himself in order to impersonate victim’s identity against the server.
 
 The threat model assumes that the attacker has MITM at the TCP level capability, which is relatively simple to obtain in Windows environments, for example abusing DNS legacy fallback protocols like LLMNR and NBT-NS or leveraging IPv6 MITM.
 
@@ -50,7 +50,7 @@ First of all we can search for broadcast traffic in the environment, for example
 
 We can then use Responder in analyze mode as follows : 
 ```
-sudo responder -I enp0s3 -A
+responder -I enp0s3 -A
 ```
 The `-A` flag makes sure we are just listening and not actually poisoning anything. 
 When I logged on the victim pc opened a file browser and tried to connect to `\\UGABUGA\`, the responder interface populated with lots of messages showing that LLMNR, NBT-NS and IPv6 are enabled on the network.
@@ -68,10 +68,10 @@ The extracted list includes 10.0.0.2 (VICTIM) and 10.0.0.10 (SRV01) and not 10.0
 ![cme](images/cme.png)
 
 ### Attack 1A: SMB to SMB Relay Using Responder and NTLM Relay + SAM Dump
-This attack uses Responder and NTLM relay together. This approach relies on broadcast protocols in the network such as LLMNR or NBT-NS to convince a victim to connect to the attacker-controlled machine. 
+This attack uses the tools "Responder.py" and "ntlmrelayx.py" together. This approach relies on broadcast protocols in the network such as LLMNR or NBT-NS to convince a victim to connect to the attacker-controlled machine. 
 In order for Responder and NTLM relay to work nicely together, we have to modify the Responder.conf file and disable the HTTP and SMB servers (as NTLM relay will be our SMB and HTTP server). Then launch responder:
 ```
-sudo python3 Responder.py -I enp0s3
+python3 Responder.py -I enp0s3
 ```
 In another terminal we’ll execute the "ntlmrelayx.py" tool from the “Impacket” suite to listen for incoming connections, relay the authentication to target server and execute a command on the target machine:
 ```
@@ -94,11 +94,11 @@ In order to illustrate this, we can setup ntlmrelayx with socks mode enabled, me
 
 Let's kill our ntlmrelayx session and start it up again but this time with the -socks option:
 ```
-sudo ntlmrelayx.py -tf /home/jean/Desktop/targets.txt -smb2 -socks
+ntlmrelayx.py -tf /home/jean/Desktop/targets.txt -smb2 -socks
 ```
 To make it work, you also need to modify the following proxychains4 configuration file to change the default port 9050 to 1080 that ntlmrelayx uses:
 ```
-sudo nano /etc/proxychains4.conf 
+nano /etc/proxychains4.conf 
 ```
 As you can see, if you input the “socks” command in the ntmlrelayx console, it will present a nice overview of which relays were successful. Please note that those connections will be maintained open “indefinitely”.
 
@@ -124,7 +124,7 @@ Please note that even if the attacked users are not admin of the system, there c
 
 If we try to relay the NTLM authentication for SMB to `ldap://10.0.0.100` (NTLM-DC) with: 
 ```
-sudo ntlmrelayx.py -t ldap://10.0.0.100 -smb2
+ntlmrelayx.py -t ldap://10.0.0.100 -smb2
 ```
 When we try to connect to `\\10.0.0.7\` from victim, we get a pretty self-explanatory error on the ntlmrelayx.py console that informs us that :
 ```
