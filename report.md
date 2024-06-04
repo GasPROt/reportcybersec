@@ -56,14 +56,13 @@ The `-A` flag makes sure we are just listening and not actually poisoning anythi
 When I logged on the victim pc opened a file browser and tried to connect to `\\UGABUGA\`, the responder interface populated with lots of messages showing that LLMNR, NBT-NS and IPv6 are enabled on the network.
 
 ![responder](images/responder.png)
+![cme](images/cme.png)
+![ntlmrelayx](images/ntlmrelayx.png)
+![socks](images/socks.png)
+![proxychain](images/proxychain.png)
+![petitpotam](images/petitpotam.png)
+![iexplore](images/iexplore.png)
+![ntlmrelaycrossprot](images/ntlmrelaycrossprot.png)
 
-
-![2 cme](images/'2 cme.png')
-![3 ntlmrelayx]("images/3 ntlmrelayx.png")
-![4 socks](images/4 socks.png)
-![5 proxychain](images/5 proxychain.png)
-![6 petit potam](images/6 petit potam.png)
-![7 iexplore](images/7 iexplore.png)
-![8 ntlmrelay cross prot](images/8 ntlmrelay cross prot.png)
 
 
