@@ -98,7 +98,7 @@ Let's kill our ntlmrelayx session and start it up again but this time with the -
 ```
 ntlmrelayx.py -tf /home/jean/Desktop/targets.txt -smb2 -socks
 ```
-Proxychaining is a tool typically used to route network traffic through one or more proxy servers (chains of proxies). In this case we use it simply as a proxy client to be able to use the already opened connection.
+["Proxychains4"](https://www.stationx.net/proxychains/) is a tool typically used to route network traffic through one or more proxy servers (chains of proxies). In this case we use it simply as a proxy client to be able to use the already opened connection.
 
 To make it work, you also need to modify the following proxychains4 configuration file to change the default port 9050 to 1080 that ntlmrelayx uses:
 ```
