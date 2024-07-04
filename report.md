@@ -144,7 +144,7 @@ When we try to connect to `\\10.0.0.7\` from victim, we get a pretty self-explan
 ```
 We have 2 options to explore then: WebDAV or Mitm6
 ### Attack 2A: WebDAV
-By default WebDav service is installed and running on Windows servers but not on the workstations. 
+WebDAV (Web Distributed Authoring and Versioning) is an extension of HTTP that allows clients to perform remote web content authoring operations. By default WebDav service is installed and running on Windows servers but not on the workstations. 
 For ease of this lab, the webclient service has been manually enabled with:
 ```
 start-service webclient
