@@ -149,7 +149,7 @@ For ease of this lab, the webclient service has been manually enabled with:
 ```
 start-service webclient
 ```
-Please note that if the webclient is installed but not running, there are some techniques that allow to enable the service, for example placing a "Documents.searchConnector-ms” on a share.
+Please note that if the webclient is installed but not running, there are some techniques that allow to enable the service, for example [placing a "Documents.searchConnector-ms” on a share](https://tradecraft.cafe/Windows-Search-And-WebDAV-Payloads/).
 
 For our next step, how can we force an authentication over HTTP?
 
