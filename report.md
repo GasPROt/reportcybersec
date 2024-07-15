@@ -288,7 +288,7 @@ Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
 [*] 	Requesting S4U2Proxy
 [*] Saving ticket in domainadmin.ccache
 ```
-The TGT ticket issued for the domainadmin user to use only on the victim machine is saved on disk in the folder we're using at the moment. We need to import it on our krb5ccname variable to use it for kerberos authentication.
+The TGT ticket issued for the domainadmin user to use only on the victim machine is saved on disk in the folder we're using at the moment. We need to import it on our "KRB5CCNAME" environment variable to use it for kerberos authentication.
 ```
 export KRB5CCNAME=domainadmin.ccache
 ```
