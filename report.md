@@ -298,4 +298,4 @@ secretsdump.py ntlmlab.local/domainadmin@victim.ntlmlab.local -k -no-pass
 ```
 The execution from getST.py is shown in the following screenshot, where you can also see that using an expired ticket gave the KDC_ERR_PREAUTH_FAILED error.
 
-![getST execution](images/cyberappendix getST export dump.png)
+![getST execution](images/getST.png)
