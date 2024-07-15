@@ -275,7 +275,7 @@ getST.py -spn cifs/victim.ntlmlab.local 'ntlmlab.local/XIWARFUV$:7$gtW2be-1<bhPx
 ```
 Lets analyze the parameters given:
 - spn: Specifies the Service Principal Name (SPN) for which the service ticket is requested, in this case cifs/victim.ntlmlab.local the file service on the target machine victim.ntlmlab.local
-- 'ntlmlab.local/XIWARFUV$:7$gtW2be-1<bhPx': The account requesting the service ticket and the password separated by colon (:)
+- 'ntlmlab.local/XIWARFUV$:7$gtW2be-1<bhPx': The account requesting the service ticket and its (known) password separated by colon (:)
 - impersonate domainadmin: The user that XIWARFUV$ wants to impersonate is "domainadmin" a high-privilege account
 
 The output is:
