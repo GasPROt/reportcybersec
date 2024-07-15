@@ -254,7 +254,7 @@ And we get :
 [*] XIWARFUV$ can now impersonate users on VICTIM$ via S4U2Proxy
 [*] HTTPD(80): Connection from 10.0.0.2 controlled, but there are no more targets left!
 ```
-We will now be able to use Kerberos delegation from the newly created "XIWARFUV" computer account to request a ticket granting ticket (TGT) on behalf of the administrator working only on the relayed machine.
+We will now be able to use Kerberos delegation from the newly created "XIWARFUV" computer account to request a ticket granting ticket (TGT) on behalf of any user, including the domain administrator, working only on the relayed (VICTIM$) machine.
 Lets  see this in action, we will use another script of the "impacket" suite called "getST.py".
 
 Please keep in mind that our attacker machine is not domain joined, and we did not set the DNS server to point to the domain controller. Since Kerberos needs FQDN instead of ip address, we will need to either :
