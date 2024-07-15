@@ -233,7 +233,7 @@ For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity
 This has a tremendous security implication: if we can relay to LDAPS an account that is allowed to add additional computers to the domain, we can compromise the relayed computer by impersonating a domain admin on the relayed computer (aka the victim).
 What happens under the hood is that:
 - as before ntlmrelayx intercepts NTLM authentication requests and relays to LDAPS
-- the tool authenticates to the LDAP server as the relayed user/machine account (e.g., NTLMLAB/VICTIM$)
+- the tool authenticates to the LDAPS server as the relayed user/machine account (e.g., NTLMLAB/VICTIM$)
 - A new computer account (e.g., newlycreatedpc$) is created in the target domain
 - The msDS-AllowedToActOnBehalfOfOtherIdentity attribute of VICTIM$ is updated to allow newlycreatedpc$ to impersonate other users
 - newlycreatedpc$ can now use Kerberos delegation (S4U2Proxy) to impersonate users when accessing resources on VICTIM$.
