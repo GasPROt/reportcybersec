@@ -228,7 +228,7 @@ For this attack we'll move into Kerberos territory; in extreme synthesis RBCD al
 
 The attribute msDS-AllowedToActOnBehalfOfOtherIdentity has to be set on the resource's account, it contains a value that represents an object that is trusted for any authentication originated from it. 
 Please note that any computer account is able to set this property on itself.
-For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity set to srv01, this means that srv02 trusts authentications coming from srv01. 
+For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity set to SRV01, this means that SRV02 trusts authentications coming from SRV01. 
 
 This has a tremendous security implication: if we can relay to LDAPS an account that is allowed to add additional computers to the domain, we can compromise the relayed computer by impersonating a domain admin on the relayed computer (aka the victim).
 What happens under the hood is that:
