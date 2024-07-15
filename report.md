@@ -226,7 +226,7 @@ Please note that to coerce authentication from the victim, for convenience we us
 ### Attack 4 Resource Based Constrained Delegation (RBCD)
 For this attack we'll move into Kerberos territory; in extreme synthesis RBCD allows services to impersonate users when accessing resources on behalf of those users. Unlike traditional delegation, RBCD is configured on the resource's account, specifying which accounts can delegate to it (more details can be found [here](https://posts.specterops.io/kerberosity-killed-the-domain-an-offensive-kerberos-overview-eb04b1402c61)).
 
-The attribute msDS-AllowedToActOnBehalfOfOtherIdentity has to be set on the resource's account, it contains a value that represents an object that is trusted for any authentication originated from it. 
+The attribute msDS-AllowedToActOnBehalfOfOtherIdentity has to be set on the resource's account to contain a value that represents an object that is trusted for any authentication originated from it. 
 Please note that any computer account is able to set this property on itself.
 For example, if SRV02 has its attribute msDS-AllowedToActOnBehalfOfOtherIdentity set to SRV01, this means that SRV02 trusts authentications coming from SRV01. 
 
