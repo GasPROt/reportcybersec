@@ -235,8 +235,8 @@ What happens under the hood is that:
 - as before ntlmrelayx intercepts NTLM authentication requests and relays to LDAPS
 - the tool authenticates to the LDAPS server as the relayed user/machine account (e.g., NTLMLAB/VICTIM$)
 - A new computer account (e.g., newlycreatedpc$) is created in the target domain
-- The msDS-AllowedToActOnBehalfOfOtherIdentity attribute of "VICTIM$" is updated to allow "newlycreatedpc$" to impersonate other users
-- "newlycreatedpc$" account can now use Kerberos delegation (S4U2Proxy) to impersonate users when accessing resources on "VICTIM$".
+- The msDS-AllowedToActOnBehalfOfOtherIdentity attribute of "VICTIM" is updated to allow "newlycreatedpc" to impersonate other users
+- "newlycreatedpc" account can now use Kerberos delegation (S4U2Proxy) to impersonate users when accessing resources on "VICTIM".
 
 Lets see all this in practice, this time we use the delegate-access flag for the command, that does all the hard work for us :
 ```
